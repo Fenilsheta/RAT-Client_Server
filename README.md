@@ -1,4 +1,4 @@
-# Secure Remote CLI — Quick Setup
+# Remote CLI Quick Setup
 
 ## Project
 
@@ -278,3 +278,5 @@ WINDOWS
 ```
 
 This project demonstrates TCP sockets, TLS encryption, authentication, allowlisted remote commands, command output handling, logging, and Windows executable packaging.
+
+> **Educational Purpose Only:** This project is created strictly for educational purposes and authorized cybersecurity testing on systems you own or have explicit permission to use.
