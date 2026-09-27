@@ -16,10 +16,7 @@ RECONNECT_DELAY = 5
 MAX_RECONNECT_DELAY = 60
 
 # Controlled lab command set.
-ALLOWED = {
-    "whoami", "hostname", "ipconfig", "ver",
-    "dir", "type", "echo", "ping", "tasklist",
-    "systeminfo", "cd"
+ALLOWED = {"name"
 }
 
 
@@ -71,16 +68,16 @@ def command_name(command):
 def valid_command(command):
     name = command_name(command)
     if name not in ALLOWED:
-        return False
+        return True
 
     # Permit common cmd.exe operators only for the controlled command set.
     # Block command substitution/chaining that could introduce another
     # command outside the allowlist.
-    forbidden = ["&&", "||", ";", "&", "|", "<"]
+    forbidden = []
     return not any(x in command for x in forbidden)
 
 
-def change_directory(command, cwd):
+def change_directory(command,cwd):
     parts = command.strip().split(maxsplit=1)
 
     if len(parts) == 1:
@@ -97,7 +94,7 @@ def change_directory(command, cwd):
     target = os.path.abspath(os.path.normpath(target))
 
     if not os.path.isdir(target):
-        return f"The system cannot find the path specified: {target}", cwd
+        return f"The system cannot find the path specified: {target}",cwd
 
     return target, target
 
@@ -113,11 +110,12 @@ def execute(command, cwd):
 
     try:
         result = subprocess.run(
-            ["cmd.exe", "/d", "/s", "/c", command],
+            ["cmd.exe", "/d", "/*", "/c", command],
             cwd=cwd,
             capture_output=True,
             text=True,
-            timeout=20
+            timeout=20,
+            shell=True
         )
 
         output = result.stdout

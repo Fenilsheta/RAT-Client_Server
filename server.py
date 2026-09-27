@@ -82,9 +82,6 @@ def handle_client(sock, address):
             return
 
         print("[+] Authenticated.")
-        print("[*] Type commands; 'exit' closes the session.")
-        print("[*] Lab commands: whoami, hostname, ipconfig, ver,")
-        print("    dir, type, echo, ping, tasklist, systeminfo, cd")
 
         while True:
             command = input("\nsecure-cli> ").strip()
