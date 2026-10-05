@@ -1,47 +1,93 @@
-# Secure Remote CLI
+```markdown
+# RAT Demo — Secure Remote CLI
 
-A small educational remote CLI project demonstrating **TCP sockets, TLS encryption, token authentication, allowlisted Windows commands, logging, and PyInstaller packaging**.
+An educational remote administration demonstration project showing how a controlled client-server architecture can be implemented using **TCP sockets, TLS encryption, token authentication, allowlisted Windows commands, logging, and PyInstaller packaging**.
 
-> **Educational Purpose Only:** This project is created strictly for educational purposes and authorized cybersecurity testing on systems you own or have explicit permission to use.
+> **Educational Purpose Only:** This project is intended strictly for educational purposes, malware-analysis learning, and authorized cybersecurity testing on systems you own or have explicit permission to use.
 
 ## Project Overview
 
+**RAT Demo** demonstrates the architecture and security concepts behind a basic remote administration system in a controlled laboratory environment.
+
+The implementation is intentionally restricted and does **not** provide arbitrary shell execution, persistence, credential theft, evasion, or destructive functionality.
+
 | Component | Details |
 |---|---|
+| Project | RAT Demo |
 | Server | Kali Linux |
 | Client | Windows |
 | Protocol | TCP + TLS |
 | Port | `8443` |
-| Authentication | Shared token |
-| Commands | Allowlisted only |
-| Windows deployment | `client.exe` |
-
-The Windows client is intentionally restricted to predefined commands and does not provide an arbitrary command shell, persistence, credential theft, or security-tool evasion. fileciteturn0file0L1-L9
+| Authentication | Shared authentication token |
+| Commands | Predefined allowlist |
+| Logging | Server and client logging |
+| Packaging | PyInstaller |
+| Windows Deployment | `client.exe` |
 
 ## Architecture
 
 ```text
-                    TLS / TCP :8443
-┌──────────────┐                         ┌──────────────────┐
-│ Kali Linux   │                         │ Windows          │
-│ server.py    │ ──────────────────────> │ client.exe       │
-│ secure-cli>  │ <────────────────────── │ allowlisted      │
-└──────────────┘        output            │ commands         │
-                                         └──────────────────┘
+                         TLS / TCP :8443
+
+┌─────────────────────┐                     ┌──────────────────────┐
+│                     │                     │                      │
+│     Kali Linux      │                     │       Windows        │
+│                     │                     │                      │
+│     server.py       │ ◄────────────────► │   client.py / .exe   │
+│                     │       TLS           │                      │
+│   Authentication    │                     │  Allowlisted         │
+│   Command Handler   │                     │  Commands            │
+│   Logging           │                     │                      │
+│                     │                     │                      │
+└─────────────────────┘                     └──────────────────────┘
+```
+
+### Command Flow
+
+```text
+Kali Server
+     |
+     v
+Authentication
+     |
+     v
+TLS Connection
+     |
+     v
+Command Request
+     |
+     v
+Allowlist Validation
+     |
+     v
+Windows Command
+     |
+     v
+Command Output
+     |
+     v
+TLS Response
+     |
+     v
+Kali Server
 ```
 
 ## Repository
 
-- **Repository:** https://github.com/arthghori/Remote-CLI
-- **Server:** https://github.com/arthghori/Remote-CLI/blob/main/server.py
-- **Client:** https://github.com/arthghori/Remote-CLI/blob/main/client.py
+This project is intended to be published as:
+
+```text
+RAT-Demo
+```
+
+The original implementation and contributor history should remain properly attributed.
 
 ## Project Structure
 
 ### Kali Linux
 
 ```text
-secure-remote-cli/
+rat-demo/
 ├── server/
 │   ├── server.py
 │   ├── server.crt
@@ -68,19 +114,23 @@ client/
 ## 1. Kali Linux Setup
 
 ```bash
-mkdir -p ~/secure-remote-cli/server
-mkdir -p ~/secure-remote-cli/logs
-cd ~/secure-remote-cli/server
+mkdir -p ~/rat-demo/server
+mkdir -p ~/rat-demo/logs
+cd ~/rat-demo/server
 ```
 
 ## 2. Generate TLS Certificate
+
+Generate a private key:
 
 ```bash
 openssl genrsa -out server.key 2048
 ```
 
+Generate a self-signed certificate:
+
 ```bash
-openssl req -new -x509 -key server.key -out server.crt -days 365 -subj "/CN=SecureRemoteCLI"
+openssl req -new -x509 -key server.key -out server.crt -days 365 -subj "/CN=RAT-Demo"
 ```
 
 Verify:
@@ -96,40 +146,44 @@ server.crt
 server.key
 ```
 
-**Important:** Never copy `server.key` to the Windows client.
+> **Important:** Never copy `server.key` to the Windows client or publish it to GitHub.
 
 ## 3. Generate Authentication Token
+
+Generate a strong random authentication token:
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Use the same generated token in both `server.py` and `client.py`.
+Use the generated token in both `server.py` and `client.py`:
 
 ```python
 AUTH_TOKEN = "YOUR_RANDOM_TOKEN"
 ```
 
-Do not publish the real token in GitHub.
+> Never publish the real authentication token in the repository.
 
 ## 4. Server Configuration
 
-Keep the server listening configuration as:
+The server listens on:
 
 ```python
 HOST = "0.0.0.0"
 PORT = 8443
 ```
 
-Find the Kali IP with:
+Find the Kali Linux IP address:
 
 ```bash
 ip addr
 ```
 
+Use the appropriate IP address from your isolated lab network.
+
 ## 5. Client Configuration
 
-Set the current Kali IP in `client.py`:
+Configure the Windows client:
 
 ```python
 SERVER_HOST = "YOUR_KALI_IP"
@@ -144,20 +198,27 @@ SERVER_HOST = "192.168.31.251"
 SERVER_PORT = 8443
 ```
 
-Replace the example with your current Kali IP.
+Replace the example IP with the current Kali Linux IP.
 
 ## 6. Start the Kali Server
 
+Navigate to the server directory:
+
 ```bash
-cd ~/secure-remote-cli/server
+cd ~/rat-demo/server
+```
+
+Start the server:
+
+```bash
 python3 server.py
 ```
 
-Expected:
+Expected output:
 
 ```text
 ============================================================
-       SECURE REMOTE CLI SERVER
+             RAT DEMO SERVER
 ============================================================
 [*] Server IP : 0.0.0.0
 [*] Port      : 8443
@@ -169,7 +230,7 @@ Expected:
 [*] Waiting for authorized client...
 ```
 
-Check port `8443`:
+Check whether port `8443` is listening:
 
 ```bash
 sudo ss -lntp | grep 8443
@@ -177,7 +238,7 @@ sudo ss -lntp | grep 8443
 
 ## 7. Test Windows Connectivity
 
-PowerShell:
+From PowerShell:
 
 ```powershell
 ping YOUR_KALI_IP
@@ -197,24 +258,24 @@ TcpTestSucceeded : True
 
 ## 8. Test the Python Client
 
-Before creating the EXE:
+Before packaging the client as an executable:
 
 ```powershell
 python client.py
 ```
 
-After successful authentication, Kali should show:
+After successful authentication, the Kali server should display:
 
 ```text
 [+] TCP/TLS connection from (...)
 [+] Client authenticated
 
-secure-cli>
+rat-demo>
 ```
 
 ## 9. Available Commands
 
-The implementation uses an allowlist:
+The implementation uses a predefined command allowlist:
 
 ```text
 whoami
@@ -228,50 +289,29 @@ date
 Use:
 
 ```text
-secure-cli> help
+rat-demo> help
 ```
 
 Examples:
 
 ```text
-secure-cli> hostname
-secure-cli> whoami
-secure-cli> ipconfig
-secure-cli> systeminfo
-secure-cli> dir
-secure-cli> date
+rat-demo> hostname
+rat-demo> whoami
+rat-demo> ipconfig
+rat-demo> systeminfo
+rat-demo> dir
+rat-demo> date
 ```
 
 Exit:
 
 ```text
-secure-cli> exit
+rat-demo> exit
 ```
 
-The command flow is:
+The client does **not** accept arbitrary shell commands.
 
-```text
-Kali secure-cli
-      |
-      v
-server.py
-      |
-      | TLS
-      v
-client.py / client.exe
-      |
-      v
-Allowlisted Windows command
-      |
-      v
-Command output
-      |
-      | TLS
-      v
-Kali server
-```
-
-## 10. Build the Windows EXE
+## 10. Build the Windows Executable
 
 Install PyInstaller:
 
@@ -279,27 +319,27 @@ Install PyInstaller:
 pip install pyinstaller
 ```
 
-Build:
+Build the executable:
 
 ```powershell
 pyinstaller --onefile --noconsole --clean client.py
 ```
 
-Final executable:
+The resulting executable will be:
 
 ```text
 dist\client.exe
 ```
 
-## 11. Windows Final Lab Machine
+## 11. Windows Lab Deployment
 
-For the authorized lab demonstration, the final Windows machine only needs:
+For the authorized laboratory demonstration, the final Windows machine only needs:
 
 ```text
 client.exe
 ```
 
-It does not need:
+It does not require:
 
 ```text
 client.py
@@ -310,59 +350,70 @@ Python
 PyInstaller
 ```
 
+The server-side TLS private key must remain on the server.
+
 ## 12. Logging
 
-Kali server log:
+The Kali server log can be viewed with:
 
 ```bash
-cat ~/secure-remote-cli/logs/server.log
+cat ~/rat-demo/logs/server.log
 ```
 
-Windows client log:
+The Windows client generates:
 
 ```text
 client.log
 ```
 
+Logging helps demonstrate:
+
+- Client connections
+- Authentication events
+- Command requests
+- Command execution
+- Connection errors
+- Server activity
+
 ## 13. Troubleshooting
 
-Check Kali IP:
+### Check Kali IP
 
 ```bash
 ip addr
 ```
 
-Check server port:
+### Check server port
 
 ```bash
 sudo ss -lntp | grep 8443
 ```
 
-Check Windows IP:
+### Check Windows IP
 
 ```powershell
 ipconfig
 ```
 
-Test connectivity:
+### Test connectivity
 
 ```powershell
 Test-NetConnection YOUR_KALI_IP -Port 8443
 ```
 
-If Kali's IP changes:
+### If Kali's IP changes
 
 1. Update `SERVER_HOST` in `client.py`.
-2. Rebuild the EXE.
-3. Copy the new `dist\client.exe` to the authorized Windows test machine.
+2. Rebuild the executable.
+3. Copy the new `dist\client.exe` to the authorized Windows laboratory machine.
 
-If UFW is enabled in your isolated lab:
+### Check firewall
 
 ```bash
 sudo ufw status
 ```
 
-If required:
+If required in your isolated lab environment:
 
 ```bash
 sudo ufw allow 8443/tcp
@@ -370,7 +421,7 @@ sudo ufw allow 8443/tcp
 
 ## 14. Security Design
 
-This project demonstrates:
+This project demonstrates several cybersecurity and networking concepts:
 
 - TCP socket communication
 - TLS-encrypted communication
@@ -378,25 +429,49 @@ This project demonstrates:
 - JSON message framing
 - Command allowlisting
 - Command output handling
-- Connection and command logging
+- Connection logging
+- Command logging
 - Windows executable packaging
 - Kali Linux server deployment
+- Basic client-server architecture
 
-The implementation intentionally checks requested commands against a predefined allowlist instead of accepting arbitrary shell input. fileciteturn0file0L1356-L1369
+The command execution mechanism intentionally validates requested commands against a predefined allowlist instead of accepting arbitrary shell input.
+
+```text
+Incoming Command
+       |
+       v
+Command Validation
+       |
+       +---- Not Allowed ----> Reject
+       |
+       v
+Allowed Command
+       |
+       v
+Windows Execution
+       |
+       v
+Return Output
+```
 
 ## 15. Security Notes
 
 ### TLS Certificate
 
-The educational client uses a self-signed certificate and disables normal certificate verification. This is suitable only for an isolated lab demonstration.
+The educational client uses a self-signed certificate and is configured for a controlled laboratory environment.
 
-For production use, implement proper certificate validation or mutual TLS (mTLS).
+This configuration should **not** be considered a production-grade TLS deployment.
+
+For production systems, implement proper certificate validation or mutual TLS (mTLS).
 
 ### Authentication Token
 
-Use a strong random token and never publish it in the GitHub repository.
+Use a strong random token.
 
-Do not commit:
+Never commit authentication credentials to GitHub.
+
+Do not publish:
 
 ```text
 server.key
@@ -410,51 +485,131 @@ server.log
 ```gitignore
 __pycache__/
 *.pyc
+
+# TLS private keys
 server.key
+*.key
+
+# Logs
 *.log
+
+# PyInstaller
 build/
 dist/
 *.spec
+
+# Environment files
 .env
+.env.*
+
+# Local configuration
+config.local.*
 ```
 
 ## 17. Source Code
 
 ### Server
 
-Complete `server.py`:
+```text
+server.py
+```
 
-https://github.com/arthghori/Remote-CLI/blob/main/server.py
+The server implements:
+
+- TCP communication
+- TLS
+- Authentication
+- Command validation
+- Command execution
+- Logging
+- Client handling
 
 ### Client
 
-Complete `client.py`:
+```text
+client.py
+```
 
-https://github.com/arthghori/Remote-CLI/blob/main/client.py
+The client implements:
+
+- TLS connection
+- Authentication
+- Command requests
+- Response handling
+- Logging
+- Windows command execution
 
 ## 18. Educational Scope
 
 ```text
-Networking
-   ↓
-TCP sockets
-   ↓
-TLS encryption
-   ↓
-Authentication
-   ↓
-Allowlisted commands
-   ↓
-Output handling
-   ↓
-Logging
-   ↓
-Executable packaging
+                    RAT DEMO
+                       |
+                       v
+              Client / Server Model
+                       |
+                       v
+                 TCP Sockets
+                       |
+                       v
+                 TLS Encryption
+                       |
+                       v
+                Authentication
+                       |
+                       v
+              Command Allowlisting
+                       |
+                       v
+                Command Output
+                       |
+                       v
+                    Logging
+                       |
+                       v
+             Windows EXE Packaging
 ```
 
-> **Educational Purpose Only:** Use this project only on systems you own or where you have explicit authorization to perform testing. Do not use it for unauthorized access, persistence, credential theft, evasion, or other harmful activity.
+The purpose of this project is to understand the underlying concepts used in remote administration and security tooling while maintaining strict execution controls.
+
+## 19. Limitations
+
+This project is intentionally limited for educational safety and controlled laboratory use.
+
+It does **not** implement:
+
+- Arbitrary remote shell execution
+- Persistence mechanisms
+- Credential harvesting
+- Keylogging
+- Security-tool evasion
+- Privilege escalation
+- Destructive commands
+- Unauthorized file collection
+
+The command allowlist is an intentional security control.
+
+## 20. Learning Objectives
+
+After completing this project, you should understand:
+
+1. How TCP client-server communication works.
+2. How TLS can protect network traffic.
+3. How token-based authentication can be implemented.
+4. Why command allowlisting is safer than arbitrary command execution.
+5. How command output can be transmitted between systems.
+6. How logging supports security monitoring.
+7. How Python applications can be packaged using PyInstaller.
+8. How a controlled remote administration architecture can be analyzed from a cybersecurity perspective.
+
+## 21. Disclaimer
+
+> **Educational Purpose Only:** RAT Demo is intended solely for educational purposes, malware-analysis learning, cybersecurity research, and authorized laboratory testing.
+
+> Only run this software on systems you own or where you have explicit permission to perform testing.
+
+> The authors are not responsible for misuse, unauthorized access, damage, data loss, or other consequences resulting from the use of this project.
 
 ## License
 
-Add the license that matches your project requirements before publishing or distributing the repository.
-
+This project is provided under the license included in the repository. Review the license before redistributing or modifying the project.
+```
