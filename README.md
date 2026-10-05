@@ -1,15 +1,14 @@
-```markdown
 # RAT Demo — Secure Remote CLI
 
-An educational remote administration demonstration project showing how a controlled client-server architecture can be implemented using **TCP sockets, TLS encryption, token authentication, allowlisted Windows commands, logging, and PyInstaller packaging**.
+An educational remote administration demonstration project showing a controlled client-server architecture using TCP sockets, TLS encryption, token authentication, allowlisted Windows commands, logging, and PyInstaller packaging.
 
 > **Educational Purpose Only:** This project is intended strictly for educational purposes, malware-analysis learning, and authorized cybersecurity testing on systems you own or have explicit permission to use.
 
 ## Project Overview
 
-**RAT Demo** demonstrates the architecture and security concepts behind a basic remote administration system in a controlled laboratory environment.
+RAT Demo demonstrates the architecture and security concepts behind a controlled remote administration system in a laboratory environment.
 
-The implementation is intentionally restricted and does **not** provide arbitrary shell execution, persistence, credential theft, evasion, or destructive functionality.
+The implementation is intentionally restricted and does not provide arbitrary shell execution, persistence, credential theft, evasion, or destructive functionality.
 
 | Component | Details |
 |---|---|
@@ -27,60 +26,48 @@ The implementation is intentionally restricted and does **not** provide arbitrar
 ## Architecture
 
 ```text
-                         TLS / TCP :8443
+                    TLS / TCP :8443
 
-┌─────────────────────┐                     ┌──────────────────────┐
-│                     │                     │                      │
-│     Kali Linux      │                     │       Windows        │
-│                     │                     │                      │
-│     server.py       │ ◄────────────────► │   client.py / .exe   │
-│                     │       TLS           │                      │
-│   Authentication    │                     │  Allowlisted         │
-│   Command Handler   │                     │  Commands            │
-│   Logging           │                     │                      │
-│                     │                     │                      │
-└─────────────────────┘                     └──────────────────────┘
++----------------------+              +----------------------+
+|      Kali Linux      |              |       Windows        |
+|                      |              |                      |
+|     server.py        | <----------> |   client.py / .exe   |
+|                      |     TLS      |                      |
+|   Authentication     |              |   Allowlisted        |
+|   Command Handler    |              |   Commands           |
+|   Logging            |              |                      |
++----------------------+              +----------------------+
 ```
 
-### Command Flow
+## Command Flow
 
 ```text
 Kali Server
-     |
-     v
+    |
+    v
 Authentication
-     |
-     v
+    |
+    v
 TLS Connection
-     |
-     v
+    |
+    v
 Command Request
-     |
-     v
+    |
+    v
 Allowlist Validation
-     |
-     v
+    |
+    v
 Windows Command
-     |
-     v
+    |
+    v
 Command Output
-     |
-     v
+    |
+    v
 TLS Response
-     |
-     v
+    |
+    v
 Kali Server
 ```
-
-## Repository
-
-This project is intended to be published as:
-
-```text
-RAT-Demo
-```
-
-The original implementation and contributor history should remain properly attributed.
 
 ## Project Structure
 
@@ -113,6 +100,8 @@ client/
 
 ## 1. Kali Linux Setup
 
+Create the project directories:
+
 ```bash
 mkdir -p ~/rat-demo/server
 mkdir -p ~/rat-demo/logs
@@ -133,7 +122,7 @@ Generate a self-signed certificate:
 openssl req -new -x509 -key server.key -out server.crt -days 365 -subj "/CN=RAT-Demo"
 ```
 
-Verify:
+Verify the generated files:
 
 ```bash
 ls -l
@@ -146,7 +135,7 @@ server.crt
 server.key
 ```
 
-> **Important:** Never copy `server.key` to the Windows client or publish it to GitHub.
+> **Important:** Never publish `server.key` or copy it to the Windows client.
 
 ## 3. Generate Authentication Token
 
@@ -156,13 +145,13 @@ Generate a strong random authentication token:
 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Use the generated token in both `server.py` and `client.py`:
+Use the generated token in the server and client configuration:
 
 ```python
 AUTH_TOKEN = "YOUR_RANDOM_TOKEN"
 ```
 
-> Never publish the real authentication token in the repository.
+> Never publish the real authentication token in GitHub.
 
 ## 4. Server Configuration
 
@@ -179,7 +168,7 @@ Find the Kali Linux IP address:
 ip addr
 ```
 
-Use the appropriate IP address from your isolated lab network.
+Use the appropriate IP address from your authorized laboratory network.
 
 ## 5. Client Configuration
 
@@ -218,7 +207,7 @@ Expected output:
 
 ```text
 ============================================================
-             RAT DEMO SERVER
+                 RAT DEMO SERVER
 ============================================================
 [*] Server IP : 0.0.0.0
 [*] Port      : 8443
@@ -264,7 +253,7 @@ Before packaging the client as an executable:
 python client.py
 ```
 
-After successful authentication, the Kali server should display:
+After successful authentication, the Kali server should show:
 
 ```text
 [+] TCP/TLS connection from (...)
@@ -275,7 +264,9 @@ rat-demo>
 
 ## 9. Available Commands
 
-The implementation uses a predefined command allowlist:
+The implementation uses a predefined command allowlist.
+
+Currently supported commands:
 
 ```text
 whoami
@@ -309,7 +300,7 @@ Exit:
 rat-demo> exit
 ```
 
-The client does **not** accept arbitrary shell commands.
+The client does not accept arbitrary shell commands.
 
 ## 10. Build the Windows Executable
 
@@ -339,7 +330,7 @@ For the authorized laboratory demonstration, the final Windows machine only need
 client.exe
 ```
 
-It does not require:
+It does not need:
 
 ```text
 client.py
@@ -421,7 +412,7 @@ sudo ufw allow 8443/tcp
 
 ## 14. Security Design
 
-This project demonstrates several cybersecurity and networking concepts:
+This project demonstrates:
 
 - TCP socket communication
 - TLS-encrypted communication
@@ -433,9 +424,9 @@ This project demonstrates several cybersecurity and networking concepts:
 - Command logging
 - Windows executable packaging
 - Kali Linux server deployment
-- Basic client-server architecture
+- Client-server architecture
 
-The command execution mechanism intentionally validates requested commands against a predefined allowlist instead of accepting arbitrary shell input.
+The command execution mechanism validates requested commands against a predefined allowlist instead of accepting arbitrary shell input.
 
 ```text
 Incoming Command
@@ -461,13 +452,13 @@ Return Output
 
 The educational client uses a self-signed certificate and is configured for a controlled laboratory environment.
 
-This configuration should **not** be considered a production-grade TLS deployment.
+This configuration should not be considered a production-grade TLS deployment.
 
 For production systems, implement proper certificate validation or mutual TLS (mTLS).
 
 ### Authentication Token
 
-Use a strong random token.
+Use a strong random authentication token.
 
 Never commit authentication credentials to GitHub.
 
@@ -480,7 +471,7 @@ client.log
 server.log
 ```
 
-## 16. Recommended `.gitignore`
+## 16. Recommended .gitignore
 
 ```gitignore
 __pycache__/
@@ -510,11 +501,13 @@ config.local.*
 
 ### Server
 
+The server implementation is contained in:
+
 ```text
 server.py
 ```
 
-The server implements:
+The server handles:
 
 - TCP communication
 - TLS
@@ -522,15 +515,17 @@ The server implements:
 - Command validation
 - Command execution
 - Logging
-- Client handling
+- Client connections
 
 ### Client
+
+The client implementation is contained in:
 
 ```text
 client.py
 ```
 
-The client implements:
+The client handles:
 
 - TLS connection
 - Authentication
@@ -575,7 +570,7 @@ The purpose of this project is to understand the underlying concepts used in rem
 
 This project is intentionally limited for educational safety and controlled laboratory use.
 
-It does **not** implement:
+It does not implement:
 
 - Arbitrary remote shell execution
 - Persistence mechanisms
